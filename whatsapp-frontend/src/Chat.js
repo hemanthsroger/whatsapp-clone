@@ -61,7 +61,9 @@ function Chat({ messages }) {
             {message}
             <span className="chat_timestamp">{`${new Date(
               timestamp
-            ).getHours()}:${new Date(timestamp).getMinutes()}`}</span>
+            ).getHours()}:${new Date(timestamp).getMinutes()} ${
+              new Date(timestamp).getHours() > 12 ? "PM" : "AM"
+            }`}</span>
           </p>
         ))}
       </div>
