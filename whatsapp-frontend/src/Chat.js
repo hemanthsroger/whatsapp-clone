@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./Chat.css";
 import SearchIcon from "@material-ui/icons/Search";
 import AttachFileIcon from "@material-ui/icons/AttachFile";
@@ -8,9 +8,20 @@ import Ticker from "react-ticker";
 import InsertEmoticonIcon from "@material-ui/icons/InsertEmoticon";
 import MicNoneIcon from "@material-ui/icons/MicNone";
 import axios from "./axios";
+import { useParams } from "react-router-dom";
 
-function Chat({ messages }) {
+function Chat() {
   const [inputMessage, setinputMessage] = useState("");
+  const { roomId } = useParams();
+  const [room, setroom] = useState([]);
+
+  useEffect(() => {
+    axios.get(`/api/v1/getRoom?roomId=${roomId}`).then((response) => {
+      setroom(response.data);
+    });
+  }, [roomId]);
+
+  //Method to post a message
   const sendMessage = async (e) => {
     e.preventDefault();
 
@@ -27,9 +38,9 @@ function Chat({ messages }) {
   return (
     <div className="chat">
       <div className="chat_header">
-        <Avatar src="https://lh3.googleusercontent.com/pw/ACtC-3fp7QCjdEYMTsUb08tNkztwGWSz6oRWTMk4pI2dwKy1VPj3urYhNzaxrB6uKmB5V_4tzstHkRu58QIUdPkXoS-ckB6m6Og6LmBdRsnigENKMbUeP5RID1rmB8hHkavmtGZ1vmbCoY1a8WDb7rX-e09g=w478-h637-no?authuser=0" />
+        <Avatar src={room.length > 0 && room[0].avatar} />
         <div className="chatHeader_info">
-          <h2>Chikoo</h2>
+          <h2>{room.length > 0 && room[0].name}</h2>
           <Ticker mode="smooth">
             {({ index }) => (
               <>
@@ -52,20 +63,23 @@ function Chat({ messages }) {
       </div>
 
       <div className="chat_body">
-        {messages.map(({ name, message, timestamp, received, _id }) => (
-          <p
-            key={_id}
-            className={`chat_message ${!received && "chat_receiver"}`}
-          >
-            <span className="chat_name">{name}</span>
-            {message}
-            <span className="chat_timestamp">{`${new Date(
-              timestamp
-            ).getHours()}:${new Date(timestamp).getMinutes()} ${
-              new Date(timestamp).getHours() > 12 ? "PM" : "AM"
-            }`}</span>
-          </p>
-        ))}
+        {room.length > 0 &&
+          room[0].messages.map(
+            ({ name, message, timestamp, received, _id }) => (
+              <p
+                key={_id}
+                className={`chat_message ${!received && "chat_receiver"}`}
+              >
+                <span className="chat_name">{name}</span>
+                {message}
+                <span className="chat_timestamp">{`${new Date(
+                  timestamp
+                ).getHours()}:${new Date(timestamp).getMinutes()} ${
+                  new Date(timestamp).getHours() > 12 ? "PM" : "AM"
+                }`}</span>
+              </p>
+            )
+          )}
       </div>
 
       <div className="chat_footer">

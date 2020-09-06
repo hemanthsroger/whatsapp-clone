@@ -4,6 +4,7 @@ import Sidebar from "./Sidebar";
 import Chat from "./Chat";
 import Pusher from "pusher-js";
 import axios from "./axios";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 
 function App() {
   const [messages, setmessages] = useState([]);
@@ -11,11 +12,11 @@ function App() {
   /**
    * Fetch all the messages first time when the page loads
    */
-  useEffect(() => {
-    axios.get("/api/v1/messages/sync").then((response) => {
-      setmessages(response.data);
-    });
-  }, []);
+  // useEffect(() => {
+  //   axios.get("/api/v1/messages/sync").then((response) => {
+  //     setmessages(response.data);
+  //   });
+  // }, []);
 
   /**
    * Using a pusher to subscribe for the "channel" & listen to "inserted" event
@@ -37,13 +38,19 @@ function App() {
     };
   }, [messages]);
 
-  console.log("Messages", messages);
+  // console.log("Messages", messages);
 
   return (
     <div className="app">
       <div className="app_body">
-        <Sidebar />
-        <Chat messages={messages} />
+        <Router>
+          <Sidebar />
+          <Switch>
+            <Route path="/rooms/:roomId">
+              <Chat />
+            </Route>
+          </Switch>
+        </Router>
       </div>
     </div>
   );
