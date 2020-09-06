@@ -21,10 +21,3 @@ The build is minified and the filenames include the hashes.<br />
 Your app is ready to be deployed!
 
 See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-## Features included
-
-1. Implemented a `Pusher` to listen to the messages stream on MongoDB to get a real-time DB acces whenever the messages are sent.
-2. Backend implemented with `NodeJS`, `Express` and `MongoDB`
-3. Fronte-End is deployed on `Firebase`
-4. Backend is deployed on `Heroku`
