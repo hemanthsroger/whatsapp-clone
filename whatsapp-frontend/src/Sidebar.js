@@ -8,9 +8,11 @@ import SearchIcon from "@material-ui/icons/Search";
 import SidebarChat from "./SidebarChat";
 import axios from "./axios";
 import Pusher from "pusher-js";
+import { useStateValue } from "./StateProvider";
 
 function Sidebar() {
   const [rooms, setrooms] = useState([]);
+  const [{ user }, dispatch] = useStateValue();
 
   //Fetching all the available rooms for the chat
   useEffect(() => {
@@ -44,7 +46,7 @@ function Sidebar() {
   return (
     <div className="sidebar">
       <div className="sidebar_header">
-        <Avatar src="https://lh3.googleusercontent.com/pw/ACtC-3cPyV-BAqad8saFL2q8PQH2Vwa3lF-BVrErnWgwvgxvFJv1pXCZNlwEaIdtWHHOoY-pPNxdcDJSCdj2m9iKoLod-_SFvDOOodhhyEAXF-l94_TEkErACYPJOFgPMUnI9jlcmatkkSWfs0SGjQh1Zqzj=w478-h637-no?authuser=0" />
+        <Avatar src={user.photoURL} />
         <div className="sidebar_headerRight">
           <IconButton>
             <DonutLargeIcon />

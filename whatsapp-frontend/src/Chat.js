@@ -9,17 +9,48 @@ import InsertEmoticonIcon from "@material-ui/icons/InsertEmoticon";
 import MicNoneIcon from "@material-ui/icons/MicNone";
 import axios from "./axios";
 import { useParams } from "react-router-dom";
+import Pusher from "pusher-js";
+import { useStateValue } from "./StateProvider";
 
 function Chat() {
   const [inputMessage, setinputMessage] = useState("");
   const { roomId } = useParams();
   const [room, setroom] = useState([]);
+  const [messages, setmessages] = useState([]);
+  const [{ user }, dispatch] = useStateValue();
 
+  /**
+   * Effect to get a specific room's messages based on the roomId
+   */
   useEffect(() => {
-    axios.get(`/api/v1/getRoom?roomId=${roomId}`).then((response) => {
-      setroom(response.data);
-    });
+    const fetchRooms = async () => {
+      const response = await axios.get(`/api/v1/getRoom?roomId=${roomId}`);
+      setroom(response.data[0]);
+      setmessages(response.data[0].messages);
+    };
+
+    fetchRooms();
   }, [roomId]);
+
+  /**
+   * Using a pusher to subscribe for the "channel" & listen to "updated" event
+   * on MongoDB's "rooms" collection to get the latest message
+   */
+  useEffect(() => {
+    const pusher = new Pusher("84c179a2a0485dd4a4d6", {
+      cluster: "ap2",
+    });
+
+    const channel = pusher.subscribe("message");
+    channel.bind("inserted", function (newMessage) {
+      setmessages([...messages, newMessage]);
+    });
+
+    return () => {
+      channel.unbind_all();
+      channel.unsubscribe();
+    };
+  }, [messages]);
 
   //Method to post a message
   const sendMessage = async (e) => {
@@ -27,7 +58,8 @@ function Chat() {
 
     await axios.post("/api/v1/messages/new", {
       message: inputMessage,
-      name: "Hemi",
+      name: user.displayName,
+      roomId: roomId,
       timestamp: new Date(),
       received: false,
     });
@@ -38,9 +70,9 @@ function Chat() {
   return (
     <div className="chat">
       <div className="chat_header">
-        <Avatar src={room.length > 0 && room[0].avatar} />
+        <Avatar src={room.avatar} />
         <div className="chatHeader_info">
-          <h2>{room.length > 0 && room[0].name}</h2>
+          <h2>{room.name}</h2>
           <Ticker mode="smooth">
             {({ index }) => (
               <>
@@ -63,23 +95,23 @@ function Chat() {
       </div>
 
       <div className="chat_body">
-        {room.length > 0 &&
-          room[0].messages.map(
-            ({ name, message, timestamp, received, _id }) => (
-              <p
-                key={_id}
-                className={`chat_message ${!received && "chat_receiver"}`}
-              >
-                <span className="chat_name">{name}</span>
-                {message}
-                <span className="chat_timestamp">{`${new Date(
-                  timestamp
-                ).getHours()}:${new Date(timestamp).getMinutes()} ${
-                  new Date(timestamp).getHours() > 12 ? "PM" : "AM"
-                }`}</span>
-              </p>
-            )
-          )}
+        {messages &&
+          messages.map(({ name, message, timestamp, received }, index) => (
+            <p
+              key={index}
+              className={`chat_message ${
+                name === user.displayName && "chat_receiver"
+              }`}
+            >
+              <span className="chat_name">{name}</span>
+              {message}
+              <span className="chat_timestamp">{`${new Date(
+                timestamp
+              ).getHours()}:${new Date(timestamp).getMinutes()} ${
+                new Date(timestamp).getHours() > 12 ? "PM" : "AM"
+              }`}</span>
+            </p>
+          ))}
       </div>
 
       <div className="chat_footer">

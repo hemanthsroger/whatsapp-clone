@@ -28,6 +28,7 @@ mongoose.connect(connection_url, {
   useCreateIndex: true,
   useNewUrlParser: true,
   useUnifiedTopology: true,
+  useFindAndModify: false,
 });
 
 const db = mongoose.connection;
@@ -35,15 +36,29 @@ const db = mongoose.connection;
 db.once("open", () => {
   console.log("DB is connected");
 
-  const msgCollection = db.collection("whatsappmessages");
-  const changeStream = msgCollection.watch();
+  const roomCollection = db.collection("rooms");
+  const changeStream = roomCollection.watch({ fullDocument: "updateLookup" });
 
   changeStream.on("change", (change) => {
-    console.log("Change stream : ", change);
-
+    //If the new Room has been created
     if (change.operationType === "insert") {
       const messageDetails = change.fullDocument;
-      pusher.trigger("messages", "inserted", {
+      console.log(messageDetails);
+      pusher.trigger("rooms", "inserted", {
+        name: messageDetails.name,
+        messages: messageDetails.messages,
+        avatar: messageDetails.avatar,
+        _id: messageDetails._id,
+      });
+    } else {
+      console.log("Error triggering messages pusher");
+    }
+
+    //If a new message has been pushed
+    if (change.operationType === "update") {
+      const messages = change.fullDocument.messages;
+      const messageDetails = messages[messages.length - 1];
+      pusher.trigger("message", "inserted", {
         name: messageDetails.name,
         message: messageDetails.message,
         timestamp: messageDetails.timestamp,
@@ -54,25 +69,6 @@ db.once("open", () => {
       console.log("Error triggering messages pusher");
     }
   });
-
-  const roomCollection = db.collection("rooms");
-  const roomChangeStream = roomCollection.watch();
-
-  roomChangeStream.on("change", (change) => {
-    console.log("Change stream : ", change);
-
-    if (change.operationType === "insert") {
-      const roomDetails = change.fullDocument;
-      pusher.trigger("rooms", "inserted", {
-        name: roomDetails.name,
-        messages: roomDetails.messages,
-        avatar: roomDetails.avatar,
-        _id: roomDetails._id,
-      });
-    } else {
-      console.log("Error triggering Rooms pusher");
-    }
-  });
 });
 
 //app endpoints
@@ -80,15 +76,22 @@ app.get("/", (req, res) => {
   res.status(200).send("Hello World");
 });
 
+//Endpoint to insert a new message into a room
 app.post("/api/v1/messages/new", (req, res) => {
+  const dbRoomId = req.body.roomId;
   const dbMessage = req.body;
-  Messages.create(dbMessage, (err, data) => {
-    if (err) {
-      res.status(500).send(err);
-    } else {
-      res.status(201).send(data);
+
+  Rooms.findOneAndUpdate(
+    { _id: dbRoomId },
+    { $push: { messages: dbMessage }, new: true },
+    (err, data) => {
+      if (err) {
+        res.status(500).send(err);
+      } else {
+        res.status(201).send(data);
+      }
     }
-  });
+  );
 });
 
 //Endpoint to fetch all the available rooms for the chat
