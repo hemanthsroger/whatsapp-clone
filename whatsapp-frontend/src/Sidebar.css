@@ -49,6 +49,8 @@
   border: none;
   margin-left: 10px;
   outline-width: 0;
+  flex: 1;
+  margin-right: 10px;
 }
 a {
   text-decoration: none;

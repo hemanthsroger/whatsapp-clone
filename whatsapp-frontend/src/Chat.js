@@ -11,22 +11,35 @@ import axios from "./axios";
 import { useParams } from "react-router-dom";
 import Pusher from "pusher-js";
 import { useStateValue } from "./StateProvider";
+import PersonAddIcon from "@material-ui/icons/PersonAdd";
+import AddUserDialog from "./AddUserDialog";
 
 function Chat() {
   const [inputMessage, setinputMessage] = useState("");
   const { roomId } = useParams();
   const [room, setroom] = useState([]);
   const [messages, setmessages] = useState([]);
-  const [{ user }, dispatch] = useStateValue();
-
+  const [{ user }] = useStateValue();
+  const [lastSeen, setlastSeen] = useState("");
+  const [open, setOpen] = useState(false);
+  const [addedUser, setAddedUser] = React.useState("");
   /**
    * Effect to get a specific room's messages based on the roomId
    */
   useEffect(() => {
     const fetchRooms = async () => {
-      const response = await axios.get(`/api/v1/getRoom?roomId=${roomId}`);
-      setroom(response.data[0]);
-      setmessages(response.data[0].messages);
+      await axios.get(`/api/v1/getRoom?roomId=${roomId}`).then((response) => {
+        const allMessages = response.data[0].messages;
+        setroom(response.data[0]);
+        setmessages(allMessages);
+        if (allMessages.length > 0) {
+          setlastSeen(
+            new Date(
+              allMessages[allMessages.length - 1].timestamp
+            ).toUTCString()
+          );
+        }
+      });
     };
 
     fetchRooms();
@@ -42,8 +55,8 @@ function Chat() {
     });
 
     const channel = pusher.subscribe("message");
-    channel.bind("inserted", function (newMessage) {
-      setmessages([...messages, newMessage]);
+    channel.bind("inserted", function (message) {
+      setmessages([...messages, message.newMessage]);
     });
 
     return () => {
@@ -51,6 +64,24 @@ function Chat() {
       channel.unsubscribe();
     };
   }, [messages]);
+
+  /**
+   * Effect to add a user to the chatroom
+   */
+  useEffect(() => {
+    const addUserToChatroom = async () => {
+      await axios.post(`/api/v1/user/new`, {
+        userId: null,
+        userName: null,
+        userEmail: addedUser,
+        rooms: [{ roomId: roomId, roomName: room.name }],
+      });
+    };
+
+    if (addedUser) {
+      addUserToChatroom();
+    }
+  }, [addedUser]);
 
   //Method to post a message
   const sendMessage = async (e) => {
@@ -67,6 +98,15 @@ function Chat() {
     setinputMessage("");
   };
 
+  const addUserToChatRoom = (user) => {
+    setOpen(false);
+    setAddedUser(user);
+  };
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
   return (
     <div className="chat">
       <div className="chat_header">
@@ -76,15 +116,23 @@ function Chat() {
           <Ticker mode="smooth">
             {({ index }) => (
               <>
-                <p>{"Last Seen : 5th September 10 a.m"}</p>
+                <p>{`Last Seen : ${new Date(lastSeen).getHours()}:${new Date(
+                  lastSeen
+                ).getMinutes()} ${
+                  new Date(lastSeen).getHours() > 12 ? "PM" : "AM"
+                }`}</p>
               </>
             )}
           </Ticker>
         </div>
         <div className="chatHeader_right">
-          <IconButton>
+          {/* <IconButton>
             <SearchIcon />
+          </IconButton> */}
+          <IconButton onClick={handleClickOpen}>
+            <PersonAddIcon />
           </IconButton>
+          <AddUserDialog open={open} onClose={addUserToChatRoom} />
           <IconButton>
             <AttachFileIcon />
           </IconButton>

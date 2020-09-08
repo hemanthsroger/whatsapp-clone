@@ -12,13 +12,18 @@ import { useStateValue } from "./StateProvider";
 
 function Sidebar() {
   const [rooms, setrooms] = useState([]);
-  const [{ user }, dispatch] = useStateValue();
+  const [{ user }] = useStateValue();
+  const [searchValue, setsearchValue] = useState("");
 
   //Fetching all the available rooms for the chat
   useEffect(() => {
-    axios.get("/api/v1/rooms").then((response) => {
-      setrooms(response.data);
-    });
+    const fetchRooms = async () => {
+      axios.get(`/api/v1/rooms?userId=${user.email}`).then((response) => {
+        setrooms(response.data);
+      });
+    };
+
+    fetchRooms();
   }, []);
 
   /**
@@ -41,7 +46,7 @@ function Sidebar() {
     };
   }, [rooms]);
 
-  console.log("Rooms : ", rooms);
+  // console.log("Rooms : ", rooms);
 
   return (
     <div className="sidebar">
@@ -63,15 +68,26 @@ function Sidebar() {
       <div className="sidebar_search">
         <div className="sidebar_searchContainer">
           <SearchIcon />
-          <input type="text" placeholder="Search chat" />
+          <input
+            type="search"
+            placeholder="Search chat"
+            value={searchValue}
+            onChange={(e) => setsearchValue(e.target.value)}
+          />
         </div>
       </div>
 
       <div className="sidebar_chats">
         <SidebarChat addNewChat setRooms={setrooms} />
-        {rooms.map((room) => (
-          <SidebarChat key={room._id} id={room._id} room={room} />
-        ))}
+        {rooms
+          .filter((room) => {
+            return room.name
+              .toLowerCase()
+              .includes(searchValue.toLocaleLowerCase());
+          })
+          .map((room) => (
+            <SidebarChat key={room._id} id={room._id} room={room} />
+          ))}
       </div>
     </div>
   );

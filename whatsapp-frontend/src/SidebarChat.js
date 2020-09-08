@@ -7,25 +7,6 @@ import Pusher from "pusher-js";
 
 function SidebarChat({ id, room, addNewChat }) {
   const [lastMessage, setlastMessage] = useState("");
-  /**
-   * Using a pusher to subscribe for the "channel" & listen to "updated" event
-   * on MongoDB's "rooms" collection to get the latest message
-   */
-  // useEffect(() => {
-  //   const pusher = new Pusher("84c179a2a0485dd4a4d6", {
-  //     cluster: "ap2",
-  //   });
-
-  //   const channel = pusher.subscribe("message");
-  //   channel.bind("inserted", function (newMessage) {
-  //     setlastMessage([newMessage.message]);
-  //   });
-
-  //   return () => {
-  //     channel.unbind_all();
-  //     channel.unsubscribe();
-  //   };
-  // }, [lastMessage]);
 
   /**
    * Effect to get a specific room's messages based on the roomId
@@ -35,6 +16,28 @@ function SidebarChat({ id, room, addNewChat }) {
     if (allMessages?.length > 0) {
       setlastMessage(allMessages[allMessages.length - 1].message);
     }
+  }, []);
+
+  /**
+   * Using a pusher to subscribe for the "channel" & listen to "updated" event
+   * on MongoDB's "rooms" collection to get the latest message
+   */
+  useEffect(() => {
+    const pusher = new Pusher("84c179a2a0485dd4a4d6", {
+      cluster: "ap2",
+    });
+
+    const channel = pusher.subscribe("message");
+    channel.bind("inserted", function (msgDetails) {
+      if (id === msgDetails.roomId) {
+        setlastMessage([msgDetails.newMessage.message]);
+      }
+    });
+
+    return () => {
+      channel.unbind_all();
+      channel.unsubscribe();
+    };
   }, []);
 
   //Function to create a new room in the DB

@@ -1,0 +1,28 @@
+.addUser {
+  background-color: #ededed;
+}
+
+.addUser_inputContainer {
+  display: flex;
+}
+
+.addUser_inputContainer > input {
+  outline-width: 0;
+  flex: 1;
+  border-radius: 20px;
+  border: none;
+  padding: 10px;
+}
+
+.addUser_button_container {
+  margin-bottom: 10px;
+}
+
+.addUser_button_container > Button {
+  background-color: #0a8d48;
+  color: white;
+}
+
+.addUser_button_container > Button:hover {
+  background-color: #0a8d48;
+}
