@@ -30,10 +30,13 @@ router.post("/api/v1/messages/new", (req, res) => {
 //Endpoint to fetch all the available rooms for the chat
 router.get("/api/v1/rooms", (req, res) => {
   const userId = req.query.userId;
+  const rooms = [];
   Users.find({ userEmail: userId }, { rooms: 1, _id: 0 }, (error, allRooms) => {
-    const rooms = allRooms[0]?.rooms.map((room) => {
-      return room.roomId;
-    });
+    if (allRooms[0].length > 0) {
+      rooms = allRooms[0].rooms.map((room) => {
+        return room.roomId;
+      });
+    }
     Rooms.find({ _id: { $in: rooms } }, (error, filteredRooms) => {
       if (error) {
         res.status(500).send(error);
