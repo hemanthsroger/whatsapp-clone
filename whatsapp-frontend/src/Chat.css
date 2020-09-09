@@ -42,6 +42,13 @@
   overflow: auto;
 }
 
+.chat_body_chat {
+  display: flex;
+  flex-direction: column;
+  /* max-width: 70%; */
+  margin-bottom: 5px;
+}
+
 .chat_message {
   position: relative;
   font-size: 15px;
@@ -50,7 +57,6 @@
   max-width: 70%;
   border-radius: 10px;
   background-color: #ffffff;
-  margin-bottom: 35px;
 }
 
 .chat_timestamp {
@@ -59,11 +65,18 @@
 }
 
 .chat_name {
-  position: absolute;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 800;
-  top: -17px;
   width: fit-content;
+  padding: 5px;
+}
+
+.chat_receiver_name {
+  margin-left: auto;
+}
+
+.chat_sender_name {
+  margin-right: auto;
 }
 
 .chat_receiver {

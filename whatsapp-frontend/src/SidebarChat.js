@@ -4,9 +4,11 @@ import { Avatar } from "@material-ui/core";
 import axios from "./axios";
 import { Link } from "react-router-dom";
 import Pusher from "pusher-js";
+import { useStateValue } from "./StateProvider";
 
 function SidebarChat({ id, room, addNewChat }) {
   const [lastMessage, setlastMessage] = useState("");
+  const [{ user }] = useStateValue();
 
   /**
    * Effect to get a specific room's messages based on the roomId
@@ -48,6 +50,9 @@ function SidebarChat({ id, room, addNewChat }) {
         name: roomName,
         avatar: "",
         messages: [],
+        userId: user.uid,
+        userEmail: user.email,
+        userName: user.displayName,
       });
     }
   };

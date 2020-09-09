@@ -61,12 +61,42 @@ router.get("/api/v1/getRoom", (req, res) => {
 
 //Endpoint to create a new Room
 router.post("/api/v1/rooms/new", (req, res) => {
-  const dbRoom = req.body;
-  Rooms.create(dbRoom, (err, data) => {
+  const dbRoom = {
+    name: req.body.name,
+    avatar: req.body.avatar,
+    messages: req.body.messages,
+  };
+  const userDetails = {
+    userId: req.body.userId,
+    userEmail: req.body.userEmail,
+    userName: req.body.userName,
+  };
+
+  /**
+   * Create a room and add the user if he doesn't exist in DB
+   * Else update the rooms associated for the existing user
+   */
+  Rooms.create(dbRoom, (err, roomData) => {
     if (err) {
       res.status(500).send(err);
     } else {
-      res.status(201).send(data);
+      Users.findOneAndUpdate(
+        { userEmail: userDetails.userEmail },
+        {
+          userName: userDetails.userName,
+          userEmail: userDetails.userEmail,
+          userId: userDetails.userId,
+          $push: { rooms: { roomId: roomData._id, roomName: req.body.name } },
+        },
+        { upsert: true },
+        (err, data) => {
+          if (err) {
+            res.status(500).send(err);
+          } else {
+            res.status(201).send(roomData);
+          }
+        }
+      );
     }
   });
 });
@@ -74,13 +104,22 @@ router.post("/api/v1/rooms/new", (req, res) => {
 //Endpoint to Add a user
 router.post("/api/v1/user/new", (req, res) => {
   const dbUser = req.body;
-  Users.create(dbUser, (err, data) => {
-    if (err) {
-      res.status(500).send(err);
-    } else {
-      res.status(201).send(data);
+  console.log("User : ", dbUser);
+  Users.updateOne(
+    { userEmail: dbUser.userEmail },
+    {
+      userEmail: dbUser.userEmail,
+      $push: { rooms: dbUser.roomDetails },
+    },
+    { upsert: true },
+    (err, data) => {
+      if (err) {
+        res.status(500).send(err);
+      } else {
+        res.status(201).send(data);
+      }
     }
-  });
+  );
 });
 
 export const apiRouter = router;

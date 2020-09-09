@@ -60,7 +60,6 @@ function Chat() {
     });
 
     return () => {
-      channel.unbind_all();
       channel.unsubscribe();
     };
   }, [messages]);
@@ -71,10 +70,8 @@ function Chat() {
   useEffect(() => {
     const addUserToChatroom = async () => {
       await axios.post(`/api/v1/user/new`, {
-        userId: null,
-        userName: null,
         userEmail: addedUser,
-        rooms: [{ roomId: roomId, roomName: room.name }],
+        roomDetails: { roomId: roomId, roomName: room.name },
       });
     };
 
@@ -86,16 +83,18 @@ function Chat() {
   //Method to post a message
   const sendMessage = async (e) => {
     e.preventDefault();
+    const emptyString = inputMessage;
+    if (emptyString.replace(/\s/g, "").length) {
+      await axios.post("/api/v1/messages/new", {
+        message: inputMessage,
+        name: user.displayName,
+        roomId: roomId,
+        timestamp: new Date(),
+        received: false,
+      });
 
-    await axios.post("/api/v1/messages/new", {
-      message: inputMessage,
-      name: user.displayName,
-      roomId: roomId,
-      timestamp: new Date(),
-      received: false,
-    });
-
-    setinputMessage("");
+      setinputMessage("");
+    }
   };
 
   const addUserToChatRoom = (user) => {
@@ -145,20 +144,29 @@ function Chat() {
       <div className="chat_body">
         {messages &&
           messages.map(({ name, message, timestamp, received }, index) => (
-            <p
-              key={index}
-              className={`chat_message ${
-                name === user.displayName && "chat_receiver"
-              }`}
-            >
-              <span className="chat_name">{name}</span>
-              {message}
-              <span className="chat_timestamp">{`${new Date(
-                timestamp
-              ).getHours()}:${new Date(timestamp).getMinutes()} ${
-                new Date(timestamp).getHours() > 12 ? "PM" : "AM"
-              }`}</span>
-            </p>
+            <div key={index} className="chat_body_chat">
+              <p
+                className={`chat_name ${
+                  name === user.displayName
+                    ? "chat_receiver_name"
+                    : "chat_sender_name"
+                }`}
+              >
+                {name}
+              </p>
+              <p
+                className={`chat_message ${
+                  name === user.displayName && "chat_receiver"
+                }`}
+              >
+                {message}
+                <span className="chat_timestamp">{`${new Date(
+                  timestamp
+                ).getHours()}:${new Date(timestamp).getMinutes()} ${
+                  new Date(timestamp).getHours() > 12 ? "PM" : "AM"
+                }`}</span>
+              </p>
+            </div>
           ))}
       </div>
 
