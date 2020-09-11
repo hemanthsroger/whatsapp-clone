@@ -20,4 +20,12 @@ It correctly bundles React in production mode and optimizes the build for the be
 The build is minified and the filenames include the hashes.<br />
 Your app is ready to be deployed!
 
+
+## Firebase Hosting
+1. firebase login
+2. firebase init
+3. npm run build
+4. firebase deploy
+
+
 See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
