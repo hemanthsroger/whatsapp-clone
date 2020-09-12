@@ -8,3 +8,4 @@ Building a whatsapp clone using MERN stack
 2. Backend implemented with `NodeJS`, `Express` and `MongoDB`
 3. Fronte-End is deployed on `Firebase`
 4. Backend is deployed on `Heroku`
+5. Realtime DB Access done with `Socket.IO`
