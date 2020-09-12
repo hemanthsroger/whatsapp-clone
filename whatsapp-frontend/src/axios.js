@@ -1,8 +1,8 @@
 import axios from "axios";
+import { ServerConfig } from "./config/config";
 
 const instance = axios.create({
-  baseURL: "https://whatsapp-clone-hemi.herokuapp.com",
-  // baseURL: "http://localhost:9000",
+  baseURL: ServerConfig.serverUrl,
 });
 
 export default instance;

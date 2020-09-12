@@ -1,6 +1,7 @@
 import express from "express";
 import Rooms from "../models/dbRooms.js";
 import Users from "../models/dbUsers.js";
+import { io } from "../server.js";
 
 const router = express.Router();
 

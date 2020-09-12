@@ -7,8 +7,9 @@ import { Avatar, IconButton } from "@material-ui/core";
 import SearchIcon from "@material-ui/icons/Search";
 import SidebarChat from "./SidebarChat";
 import axios from "./axios";
-import Pusher from "pusher-js";
 import { useStateValue } from "./StateProvider";
+import { SocketIOEvents } from "./models/socketEvents.const";
+import { SocketConnection } from "./config/config";
 
 function Sidebar() {
   const [rooms, setrooms] = useState([]);
@@ -24,29 +25,41 @@ function Sidebar() {
     };
 
     fetchRooms();
-  }, []);
+  }, [user.email]);
 
   /**
    * Using a pusher to subscribe for the "channel" & listen to "inserted" event
    * on MongoDB's "rooms" collection
    */
-  useEffect(() => {
-    const pusher = new Pusher("84c179a2a0485dd4a4d6", {
-      cluster: "ap2",
-    });
+  // useEffect(() => {
+  //   const pusher = new Pusher("84c179a2a0485dd4a4d6", {
+  //     cluster: "ap2",
+  //   });
 
-    const channel = pusher.subscribe("rooms");
-    channel.bind("inserted", function (newRoom) {
+  //   const channel = pusher.subscribe("rooms");
+  //   channel.bind("inserted", function (newRoom) {
+  //     setrooms([...rooms, newRoom]);
+  //   });
+
+  //   return () => {
+  //     channel.unbind_all();
+  //     channel.unsubscribe();
+  //   };
+  // }, [rooms]);
+
+  /**
+   * Using Socket.io to subscribe for the "inserted" event
+   * on MongoDB's "rooms" collection
+   */
+  useEffect(() => {
+    SocketConnection.on(SocketIOEvents.RoomInserted, (newRoom) => {
       setrooms([...rooms, newRoom]);
     });
 
     return () => {
-      channel.unbind_all();
-      channel.unsubscribe();
+      SocketConnection.off(SocketIOEvents.RoomInserted);
     };
   }, [rooms]);
-
-  // console.log("Rooms : ", rooms);
 
   return (
     <div className="sidebar">

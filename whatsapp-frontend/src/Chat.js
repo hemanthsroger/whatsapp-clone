@@ -9,10 +9,13 @@ import InsertEmoticonIcon from "@material-ui/icons/InsertEmoticon";
 import MicNoneIcon from "@material-ui/icons/MicNone";
 import axios from "./axios";
 import { useParams } from "react-router-dom";
-import Pusher from "pusher-js";
 import { useStateValue } from "./StateProvider";
 import PersonAddIcon from "@material-ui/icons/PersonAdd";
 import AddUserDialog from "./AddUserDialog";
+import socketIOClient from "socket.io-client";
+import { ServerConfig } from "./config/config";
+import { SocketIOEvents } from "./models/socketEvents.const";
+import { SocketConnection } from "./config/config";
 
 function Chat() {
   const [inputMessage, setinputMessage] = useState("");
@@ -46,22 +49,15 @@ function Chat() {
   }, [roomId]);
 
   /**
-   * Using a pusher to subscribe for the "channel" & listen to "updated" event
+   * Using Socket.io to subscribe for the "updated" event
    * on MongoDB's "rooms" collection to get the latest message
    */
   useEffect(() => {
-    const pusher = new Pusher("84c179a2a0485dd4a4d6", {
-      cluster: "ap2",
+    SocketConnection.on(SocketIOEvents.MessageInserted, (message) => {
+      if (roomId === message.roomId) {
+        setmessages([message.newMessage, ...messages]);
+      }
     });
-
-    const channel = pusher.subscribe("message");
-    channel.bind("inserted", function (message) {
-      setmessages([...messages, message.newMessage]);
-    });
-
-    return () => {
-      channel.unsubscribe();
-    };
   }, [messages]);
 
   /**

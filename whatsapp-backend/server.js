@@ -3,15 +3,15 @@ import mongoose from "mongoose";
 
 import { DbConfig, dbConnection } from "./config/db.js";
 import { apiRouter } from "./routes/router.js";
-import Pusher from "pusher";
 import cors from "cors";
-import { PusherConfig, watchCollection } from "./config/pusher.js";
+import { watchCollection } from "./config/socketIO.js";
+import SocketIo from "socket.io";
 
 //app config
 const app = express();
 const port = process.env.PORT || 9000;
 
-const pusher = new Pusher(PusherConfig);
+// const pusher = new Pusher(PusherConfig);
 
 //middleware
 app.use(express.json());
@@ -26,10 +26,12 @@ const db = dbConnection;
 db.once("open", () => {
   console.log("DB is connected");
   //Warch Rooms and Messages collection for any changes
-  watchCollection(db, pusher);
+  watchCollection(db, io);
 });
 
 //Start the server on PORT 9000
-app.listen(port, () => {
+const expressServer = app.listen(port, () => {
   console.log(`App listening on PORT : ${port}`);
 });
+
+export const io = SocketIo(expressServer);

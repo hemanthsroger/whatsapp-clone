@@ -3,8 +3,9 @@ import "./SidebarChat.css";
 import { Avatar } from "@material-ui/core";
 import axios from "./axios";
 import { Link } from "react-router-dom";
-import Pusher from "pusher-js";
 import { useStateValue } from "./StateProvider";
+import { SocketIOEvents } from "./models/socketEvents.const";
+import { SocketConnection } from "./config/config";
 
 function SidebarChat({ id, room, addNewChat }) {
   const [lastMessage, setlastMessage] = useState("");
@@ -25,21 +26,22 @@ function SidebarChat({ id, room, addNewChat }) {
    * on MongoDB's "rooms" collection to get the latest message
    */
   useEffect(() => {
-    const pusher = new Pusher("84c179a2a0485dd4a4d6", {
-      cluster: "ap2",
-    });
+    // const pusher = new Pusher("84c179a2a0485dd4a4d6", {
+    //   cluster: "ap2",
+    // });
 
-    const channel = pusher.subscribe("message");
-    channel.bind("inserted", function (msgDetails) {
+    // const channel = pusher.subscribe("message");
+    // channel.bind("inserted", function (msgDetails) {
+    //   if (id === msgDetails.roomId) {
+    //     setlastMessage([msgDetails.newMessage.message]);
+    //   }
+    // });
+
+    SocketConnection.on(SocketIOEvents.MessageInserted, (msgDetails) => {
       if (id === msgDetails.roomId) {
         setlastMessage([msgDetails.newMessage.message]);
       }
     });
-
-    return () => {
-      channel.unbind_all();
-      channel.unsubscribe();
-    };
   }, []);
 
   //Function to create a new room in the DB
