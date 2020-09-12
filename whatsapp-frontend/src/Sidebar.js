@@ -10,16 +10,17 @@ import axios from "./axios";
 import { useStateValue } from "./StateProvider";
 import { SocketIOEvents } from "./models/socketEvents.const";
 import { SocketConnection } from "./config/config";
+import { Api } from "./config/endpoints";
 
 function Sidebar() {
   const [rooms, setrooms] = useState([]);
   const [{ user }] = useStateValue();
   const [searchValue, setsearchValue] = useState("");
 
-  //Fetching all the available rooms for the chat
+  //Fetching all the available rooms for the User
   useEffect(() => {
     const fetchRooms = async () => {
-      axios.get(`/api/v1/rooms?userId=${user.email}`).then((response) => {
+      axios.get(`${Api.getRoomsForUser}${user.email}`).then((response) => {
         setrooms(response.data);
       });
     };

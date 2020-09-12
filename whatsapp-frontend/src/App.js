@@ -1,13 +1,25 @@
-import React from "react";
+import React, { useEffect } from "react";
 import "./App.css";
 import Sidebar from "./Sidebar";
 import Chat from "./Chat";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import Login from "./Login";
 import { useStateValue } from "./StateProvider";
+import { auth } from "./firebase";
 
 function App() {
-  const [{ user }] = useStateValue();
+  const [{ user }, dispatch] = useStateValue();
+
+  //Effect to check if the user is logged in or not and direct to Login or whatever page he was in
+  useEffect(() => {
+    auth.onAuthStateChanged((authUser) => {
+      if (authUser) {
+        dispatch({ type: "Set_User", user: authUser });
+      } else {
+        dispatch({ type: "Set_User", user: null });
+      }
+    });
+  }, []);
 
   return (
     <div className="app">

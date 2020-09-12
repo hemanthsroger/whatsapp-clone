@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { useStateValue } from "./StateProvider";
 import { SocketIOEvents } from "./models/socketEvents.const";
 import { SocketConnection } from "./config/config";
+import { Api } from "./config/endpoints";
 
 function SidebarChat({ id, room, addNewChat }) {
   const [lastMessage, setlastMessage] = useState("");
@@ -48,7 +49,7 @@ function SidebarChat({ id, room, addNewChat }) {
   const createRoom = () => {
     const roomName = prompt("Enter the Room Name");
     if (roomName) {
-      axios.post("/api/v1/rooms/new", {
+      axios.post(Api.addRoom, {
         name: roomName,
         avatar: "",
         messages: [],

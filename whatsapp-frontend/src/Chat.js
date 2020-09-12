@@ -3,6 +3,7 @@ import "./Chat.css";
 import SearchIcon from "@material-ui/icons/Search";
 import AttachFileIcon from "@material-ui/icons/AttachFile";
 import MoreVertIcon from "@material-ui/icons/MoreVert";
+import SendIcon from "@material-ui/icons/Send";
 import { Avatar, IconButton } from "@material-ui/core";
 import Ticker from "react-ticker";
 import InsertEmoticonIcon from "@material-ui/icons/InsertEmoticon";
@@ -12,10 +13,9 @@ import { useParams } from "react-router-dom";
 import { useStateValue } from "./StateProvider";
 import PersonAddIcon from "@material-ui/icons/PersonAdd";
 import AddUserDialog from "./AddUserDialog";
-import socketIOClient from "socket.io-client";
-import { ServerConfig } from "./config/config";
 import { SocketIOEvents } from "./models/socketEvents.const";
 import { SocketConnection } from "./config/config";
+import { Api } from "./config/endpoints";
 
 function Chat() {
   const [inputMessage, setinputMessage] = useState("");
@@ -31,7 +31,7 @@ function Chat() {
    */
   useEffect(() => {
     const fetchRooms = async () => {
-      await axios.get(`/api/v1/getRoom?roomId=${roomId}`).then((response) => {
+      await axios.get(`${Api.getMessagesForRoom}${roomId}`).then((response) => {
         const allMessages = response.data[0].messages;
         setroom(response.data[0]);
         setmessages(allMessages);
@@ -65,7 +65,7 @@ function Chat() {
    */
   useEffect(() => {
     const addUserToChatroom = async () => {
-      await axios.post(`/api/v1/user/new`, {
+      await axios.post(Api.addUser, {
         userEmail: addedUser,
         roomDetails: { roomId: roomId, roomName: room.name },
       });
@@ -81,7 +81,7 @@ function Chat() {
     e.preventDefault();
     const emptyString = inputMessage;
     if (emptyString.replace(/\s/g, "").length) {
-      await axios.post("/api/v1/messages/new", {
+      await axios.post(Api.addMessage, {
         message: inputMessage,
         name: user.displayName,
         roomId: roomId,
@@ -184,6 +184,10 @@ function Chat() {
             Submit message
           </button>
         </form>
+
+        <IconButton onClick={sendMessage}>
+          <SendIcon />
+        </IconButton>
 
         <IconButton>
           <MicNoneIcon />
