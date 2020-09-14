@@ -23,7 +23,7 @@ Your app is ready to be deployed!
 
 ## Firebase Hosting
 1. firebase login
-2. firebase init
+2. firebase init (--Choose Hosting -> give output directory as "build")
 3. npm run build
 4. firebase deploy
 
