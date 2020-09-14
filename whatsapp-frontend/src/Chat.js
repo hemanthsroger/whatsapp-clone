@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import "./Chat.css";
 import SearchIcon from "@material-ui/icons/Search";
 import AttachFileIcon from "@material-ui/icons/AttachFile";
@@ -26,6 +26,12 @@ function Chat() {
   const [lastSeen, setlastSeen] = useState("");
   const [open, setOpen] = useState(false);
   const [addedUser, setAddedUser] = React.useState("");
+
+  const setRef = useCallback((node) => {
+    if (node) {
+      node.scrollIntoView({ smooth: true });
+    }
+  }, []);
   /**
    * Effect to get a specific room's messages based on the roomId
    */
@@ -55,7 +61,7 @@ function Chat() {
   useEffect(() => {
     SocketConnection.on(SocketIOEvents.MessageInserted, (message) => {
       if (roomId === message.roomId) {
-        setmessages([message.newMessage, ...messages]);
+        setmessages([...messages, message.newMessage]);
       }
     });
   }, [messages]);
@@ -140,7 +146,7 @@ function Chat() {
       <div className="chat_body">
         {messages &&
           messages.map(({ name, message, timestamp, received }, index) => (
-            <div key={index} className="chat_body_chat">
+            <div key={index} ref={setRef} className="chat_body_chat">
               <p
                 className={`chat_name ${
                   name === user.displayName
